@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>App</title>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hidden { display: none; }
+
+    .hint {
+      text-align: center;
+      opacity: 0.9;
+      font-size: 1.2rem;
+      padding: 20px;
+    }
+
+    .container {
+      text-align: center;
+      z-index: 5;
+    }
+
+    img {
+      width: 70vw;
+      max-width: 260px;
+      height: 70vw;
+      max-height: 260px;
+      object-fit: cover;
+      border-radius: 20px;
+      box-shadow: 0 0 20px hotpink;
+      margin-bottom: 16px;
+    }
+
+    .buttons button {
+      font-size: 1.2rem;
+      padding: 14px 28px;
+      margin: 10px;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .yes { background: hotpink; color: white; }
+    .no { background: crimson; color: white; }
+
+    .final {
+      text-align: center;
+    }
+
+    .final img {
+      border-radius: 50%;
+      box-shadow: 0 0 30px hotpink;
+      animation: pulse 1s infinite alternate;
+    }
+
+    .final-text {
+      font-size: 2.2rem;
+      margin-top: 10px;
+      letter-spacing: 3px;
+      text-shadow: 0 0 20px hotpink;
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.08); }
+    }
+
+    .fx, .heart {
+      position: fixed;
+      pointer-events: none;
+      font-size: 22px;
+    }
+
+    .fx { animation: pop 1s ease-out forwards; }
+    .heart { bottom: -20px; animation: floatUp 2s linear forwards; }
+
+    @keyframes pop {
+      0% { transform: scale(0); opacity: 1; }
+      100% { transform: scale(2); opacity: 0; }
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(-120vh); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ekran “neutralny” -->
+  <div class="hint" id="hint">
+    <p>Dodaj tę stronę do ekranu głównego i uruchom jak aplikację 📱</p>
+    <p>(Safari → Udostępnij → Dodaj do ekranu początkowego)</p>
+  </div>
+
+  <!-- Walentynka -->
+  <div class="container hidden" id="start">
+    <img src="https://picsum.photos/400">
+    <h1>Czy zostaniesz moją walentynką? ❤️</h1>
+    <div class="buttons">
+      <button class="yes" onclick="answer('TAK')">TAK</button>
+      <button class="no" onclick="answer('NIE')">NIE</button>
+    </div>
+  </div>
+
+  <!-- Finał -->
+  <div class="final hidden" id="final">
+    <img src="https://picsum.photos/400">
+    <div class="final-text">KOCHAM CIĘ ❤️</div>
+  </div>
+
+  <script>
+    const TELEGRAM_BOT_TOKEN = "TUTAJ_WKLEJ_TOKEN";
+    const TELEGRAM_CHAT_ID = "TUTAJ_WKLEJ_ID_KANAŁU";
+
+    function sendToTelegram(msg) {
+      fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg })
+      });
+    }
+
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true;
+
+    if (isStandalone) {
+      document.getElementById("hint").classList.add("hidden");
+      document.getElementById("start").classList.remove("hidden");
+    }
+
+    function answer(value) {
+      sendToTelegram("Walentynka odpowiedź: " + value);
+
+      if (value === "NIE") {
+        document.body.innerHTML = "";
+        document.body.style.background = "black";
+        return;
+      }
+
+      document.getElementById("start").classList.add("hidden");
+      document.getElementById("final").classList.remove("hidden");
+
+      setInterval(() => {
+        spawnFx("🎆");
+        spawnFx("✨");
+        spawnHeart();
+        document.body.style.background =
+          `rgb(${rand()}, ${rand()}, ${rand()})`;
+      }, 60);
+    }
+
+    function rand() {
+      return Math.floor(Math.random() * 255);
+    }
+
+    function spawnFx(emoji) {
+      const el = document.createElement("div");
+      el.className = "fx";
+      el.innerText = emoji;
+      el.style.left = Math.random() * 100 + "vw";
+      el.style.top = Math.random() * 100 + "vh";
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 1000);
+    }
+
+    function spawnHeart() {
+      const h = document.createElement("div");
+      h.className = "heart";
+      h.innerText = "❤️";
+      h.style.left = Math.random() * 100 + "vw";
+      h.style.fontSize = (16 + Math.random() * 20) + "px";
+      document.body.appendChild(h);
+      setTimeout(() => h.remove(), 2000);
+    }
+  </script>
+
+</body>
+</html>
